@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel = "stylesheet" href="style.css">           <!-- to link css file with html-->
+</head>
+<body>
+
+    <div class="card">                                                  <!-- Shortcut simply type .card to create div class named card-->
+        <div class="search">
+            <input type = "text" placeholder="enter city name" spellcheck="false">
+            <button><img src ="images/search.png"></button>                              <!--add images to website -->
+        </div>
+        <div class="error">
+            <p>Invalid City Name</p>
+        </div>
+        <div class="weather">
+            <img src ="images/rain.png" class="weather-icon">
+            <h1 class="temp">28°c</h1>                                       <!-- simply type h1.temp to create class temp and add random temp(eg here 22°c) as h1 tag -->
+            <h2 class="city">Kota</h2>                                        <!-- type h2.city -->
+            <div class="details">
+                <div class="col">
+                    <img src = "images/humidity.png">
+                    <div>
+                        <p class = "humidity">93%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src = "images/wind.png">
+                    <div>
+                        <p class = "wind">6 km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const apiKey = "99007921c34e1016d6df8bc48f3632d2";
+    const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+    const searchBox = document.querySelector(".search input");
+    const searchBtn = document.querySelector(".search button");
+    const weatherIcon = document.querySelector(".weather-icon");                  
+
+    async function checkWeather(city){
+        const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
+
+        if(response.status == 404){
+            document.querySelector(".error").style.display = "block";
+            document.querySelector(".weather").style.display = "none";
+        }else{
+            var data = await response.json();
+
+                                                                                                       //go inspect-> console -> to look for hierarchy wherein objects stored
+            document.querySelector(".city").innerHTML = data.name;                                     // update the city name on web page
+            document.querySelector(".temp").innerHTML =  Math.round(data.main.temp) + "°c";            // update the cuurent temp of city on web page, Math.round() func round of the temp into integer
+            document.querySelector(".humidity").innerHTML = data.main.humidity + "%";                  // update the humiduty of city on webpage
+            document.querySelector(".wind").innerHTML = data.wind.speed + "km/h";                      //update the wind speed of city on webpage
+
+            if(data.weather[0].main == "Clouds"){
+                weatherIcon.src =  "images/clouds.png";
+            }
+            else if(data.weather[0].main == "Clear"){
+                weatherIcon.src = "images/clear.png";
+            }
+            else if(data.weather[0].main == "Rain"){
+                weatherIcon.src = "images/rain.png";
+            }
+            else if(data.weather[0].main == "Drizzle"){
+                weatherIcon.src = "images/drizzle.png";
+            }
+            else if(data.weather[0].main == "Mist"){
+                weatherIcon.src = "images/mist.png";
+            }
+
+            document.querySelector(".weather").style.display = "block";
+            document.querySelector(".error").style.display = "none";
+            }
+
+        
+    }
+ searchBtn.addEventListener("click", ()=>{
+    checkWeather(searchBox.value);
+ })
+
+</script>
+    
+</body>
+</html>
