@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <link rel="icon" href="images/globe.png" type="image/png">
+</head>
+<body>
+
+    <header>
+        <h1>🌍</h1>
+    </header>
+
+    <div class="card">
+        <div class="search">
+            <input type="text" id="city-input" placeholder="Enter city name" spellcheck="false">
+            <button><img src="images/search.png" alt="Search"></button>
+        </div>
+        <div class="error">
+            <p>Invalid City Name</p>
+        </div>
+        <div class="weather">
+            <img src="images/rain.png" class="weather-icon" alt="Weather Icon">
+            <h1 class="temp">28°c</h1>
+            <h2 class="city">Kota</h2>
+            <div class="details">
+                <div class="col">
+                    <img src="images/humidity.png" alt="Humidity Icon">
+                    <div>
+                        <p class="humidity">93%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="images/wind.png" alt="Wind Icon">
+                    <div>
+                        <p class="wind">6 km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <canvas id="climateChart" width="400" height="200"></canvas>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Weather App. All rights reserved.</p>
+    </footer>
+
+<script>
+
+    const apiKey = "99007921c34e1016d6df8bc48f3632d2";
+    const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+    const geoApiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&lat=";
+
+    const searchBox = document.querySelector(".search input");
+    const searchBtn = document.querySelector(".search button");
+    const weatherIcon = document.querySelector(".weather-icon");
+
+    async function checkWeather(city){
+        const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
+
+        if(response.status == 404){
+            document.querySelector(".error").style.display = "block";
+            document.querySelector(".weather").style.display = "none";
+        }else{
+            var data = await response.json();
+
+            document.querySelector(".city").innerHTML = `${data.name}, ${data.sys.country}`;
+            document.querySelector(".temp").innerHTML =  Math.round(data.main.temp) + "°c";
+            document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+            document.querySelector(".wind").innerHTML = data.wind.speed + "km/h";
+
+            if(data.weather[0].main == "Clouds"){
+                weatherIcon.src =  "images/clouds.png";
+            }
+            else if(data.weather[0].main == "Clear"){
+                weatherIcon.src = "images/clear.png";
+            }
+            else if(data.weather[0].main == "Rain"){
+                weatherIcon.src = "images/rain.png";
+            }
+            else if(data.weather[0].main == "Drizzle"){
+                weatherIcon.src = "images/drizzle.png";
+            }
+            else if(data.weather[0].main == "Mist"){
+                weatherIcon.src = "images/mist.png";
+            }
+
+            document.querySelector(".weather").style.display = "block";
+            document.querySelector(".error").style.display = "none";
+
+            renderClimateChart(data);
+        }
+    }
+
+    async function checkWeatherByLocation(lat, lon){
+        const response = await fetch(geoApiUrl + lat + `&lon=${lon}&appid=${apiKey}`);
+
+        if(response.status == 404){
+            document.querySelector(".error").style.display = "block";
+            document.querySelector(".weather").style.display = "none";
+        }else{
+            var data = await response.json();
+
+            document.querySelector(".city").innerHTML = `${data.name}, ${data.sys.country}`;
+            document.querySelector(".temp").innerHTML =  Math.round(data.main.temp) + "°c";
+            document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+            document.querySelector(".wind").innerHTML = data.wind.speed + "km/h";
+
+            if(data.weather[0].main == "Clouds"){
+                weatherIcon.src =  "images/clouds.png";
+            }
+            else if(data.weather[0].main == "Clear"){
+                weatherIcon.src = "images/clear.png";
+            }
+            else if(data.weather[0].main == "Rain"){
+                weatherIcon.src = "images/rain.png";
+            }
+            else if(data.weather[0].main == "Drizzle"){
+                weatherIcon.src = "images/drizzle.png";
+            }
+            else if(data.weather[0].main == "Mist"){
+                weatherIcon.src = "images/mist.png";
+            }
+
+            document.querySelector(".weather").style.display = "block";
+            document.querySelector(".error").style.display = "none";
+
+            renderClimateChart(data);
+        }
+    }
+
+    let climateChart; // Declare a variable to hold the chart instance
+
+    function renderClimateChart(data) {
+        const ctx = document.getElementById('climateChart').getContext('2d');
+
+        // Destroy the previous chart instance if it exists
+        if (climateChart) {
+            climateChart.destroy();
+        }
+
+        climateChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Temperature (°C)', 'Humidity (%)', 'Wind Speed (km/h)'],
+                datasets: [{
+                    label: 'Climate Data',
+                    data: [data.main.temp, data.main.humidity, data.wind.speed],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(75, 192, 192, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: function(value, context) {
+                            const label = context.chart.data.labels[context.dataIndex];
+                            if (label === 'Humidity (%)') {
+                                return value.toFixed(2) + '%';
+                            } else if (label === 'Temperature (°C)') {
+                                return value.toFixed(2) + '°C';
+                            } else if (label === 'Wind Speed (km/h)') {
+                                return value.toFixed(2) + ' km/h';
+                            }
+                            return value.toFixed(2);
+                        },
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            const label = data.labels[tooltipItem.index];
+                            let value = data.datasets[0].data[tooltipItem.index];
+                            if (label === 'Temperature (°C)') {
+                                return `Temperature: ${value.toFixed(2)}°C`;
+                            } else if (label === 'Humidity (%)') {
+                                return `Humidity: ${value.toFixed(2)}%`;
+                            } else if (label === 'Wind Speed (km/h)') {
+                                return `Wind Speed: ${value.toFixed(2)} km/h`;
+                            }
+                            return value;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    searchBtn.addEventListener("click", ()=>{
+        checkWeather(searchBox.value);
+    });
+
+    window.addEventListener("load", () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                checkWeatherByLocation(position.coords.latitude, position.coords.longitude);
+            });
+        }
+    });
+</script>
+    
+</body>
+</html>
